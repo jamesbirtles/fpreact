@@ -1,6 +1,6 @@
 {
     "name": "fpreact",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "fpreact provides an alternative api for creating preact components, heavily inspired by elm.",
     "main": "dist/index.js",
     "typings": "dist/index",
