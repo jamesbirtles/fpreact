@@ -46,8 +46,15 @@ export function component<Model, Msg, Props = {}>(
                     let result: Result;
                     if (value instanceof Result) {
                         result = value;
-                    } else if (value instanceof Event && 'value' in value.target) {
-                        result = r((value.target as HTMLInputElement).value);
+                    } else if (value instanceof Event && value.target instanceof HTMLInputElement) {
+                        switch (value.target.type) {
+                            case 'checkbox':
+                                result = r(value.target.checked);
+                                break;
+                            default:
+                                result = r(value.target.value);
+                                break;
+                        }
                     } else {
                         result = r(value);
                     }
