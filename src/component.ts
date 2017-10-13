@@ -1,23 +1,27 @@
 import { Component, ComponentConstructor } from 'preact';
-
-import { DispatchResult, Dispatcher } from './dispatch';
-import { Result, r } from './result';
+import { Dispatcher } from './dispatcher';
 import { Cmd, isCmdDispatch } from './cmd';
 
-export interface ComponentDefinition<Model, Msg, Props> {
-    model: Model;
-    update(msg: DispatchResult<Msg>, model: Model): Model | [Model, Cmd<Msg>];
-    view(model: Model, dispatch: Dispatcher<Msg>): JSX.Element | null;
-
-    init?(model: Model, dispatch: Dispatcher<Msg>): void;
-    props?(props: Props, dispatch: Dispatcher<Msg>): void;
+export interface Message<K, V = any, E extends Error = any> {
+    kind: K;
+    value: V;
+    error: E;
 }
 
-export function component<Model, Msg, Props = {}>(
+export interface ComponentDefinition<Model, Msg extends Message<any>, Props> {
+    model: Model;
+    update(msg: Msg, model: Model): Model | [Model, Cmd<Msg['kind']>];
+    view(model: Model, dispatch: Dispatcher<Msg['kind']>): JSX.Element | null;
+
+    init?(model: Model, dispatch: Dispatcher<Msg['kind']>): void;
+    props?(props: Props, dispatch: Dispatcher<Msg['kind']>): void;
+}
+
+export function component<Model, Msg extends Message<any>, Props = {}>(
     comp: ComponentDefinition<Model, Msg, Props>,
 ): ComponentConstructor<Props, Model> {
     return class extends Component<Props, Model> {
-        dispatchers = new Map<Msg, (value?: any) => any>();
+        dispatchers = new Map<Msg['kind'], (value?: any, err?: Error) => void>();
         state = comp.model;
 
         componentWillMount() {
@@ -39,29 +43,25 @@ export function component<Model, Msg, Props = {}>(
             }
         }
 
-        dispatch = (msg: Msg) => {
-            let dispatcher = this.dispatchers.get(msg);
+        dispatch = (kind: Msg['kind']) => {
+            let dispatcher = this.dispatchers.get(kind);
             if (dispatcher == null) {
-                dispatcher = (value: any) => {
-                    let result: Result;
-                    if (value instanceof Result) {
-                        result = value;
-                    } else if (value instanceof Event && value.target instanceof HTMLInputElement) {
+                dispatcher = (value: any, err: Error) => {
+                    let msg = { kind, value, error: err };
+                    if (value instanceof Event && value.target instanceof HTMLInputElement) {
                         switch (value.target.type) {
                             case 'checkbox':
-                                result = r(value.target.checked);
+                                msg = { ...msg, value: value.target.checked };
                                 break;
                             default:
-                                result = r(value.target.value);
+                                msg = { ...msg, value: value.target.value };
                                 break;
                         }
-                    } else {
-                        result = r(value);
                     }
 
-                    const res = comp.update({ kind: msg, result }, this.state);
+                    const res = comp.update(<any>msg, this.state);
                     let model: Model;
-                    if (isCmdDispatch(res)) {
+                    if (isCmdDispatch<Model, Msg['kind']>(res)) {
                         model = res[0];
                         res[1](this.dispatch);
                     } else {
@@ -70,7 +70,7 @@ export function component<Model, Msg, Props = {}>(
 
                     this.setState(model);
                 };
-                this.dispatchers.set(msg, dispatcher);
+                this.dispatchers.set(kind, dispatcher);
             }
 
             return dispatcher;

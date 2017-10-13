@@ -1,4 +1,4 @@
-import { h, component, render, Dispatcher, r } from '..';
+import { h, component, render, Dispatcher, Message } from '..';
 
 enum Msg {
     MorePlease,
@@ -12,6 +12,11 @@ interface Model {
     error: string;
 }
 
+type Messages =
+    | Message<Msg.MorePlease>
+    | Message<Msg.NewGif, string, Error>
+    | Message<Msg.UpdateTopic, string>;
+
 function getRandomGif(topic: string) {
     return (dispatch: Dispatcher<Msg>) => {
         fetch('https://api.giphy.com/v1/gifs/random?api_key=dc6zaTOxFJmzC&tag=' + topic)
@@ -22,13 +27,12 @@ function getRandomGif(topic: string) {
 
                 return res.json();
             })
-            .then(res => r(res.data.image_url))
-            .catch(err => r(null, err))
-            .then(dispatch(Msg.NewGif));
+            .then(res => dispatch(Msg.NewGif)(res.data.image_url))
+            .catch(err => dispatch(Msg.NewGif)(null, err));
     };
 }
 
-const RandomGifs = component<Model, Msg>({
+const RandomGifs = component<Model, Messages>({
     model: {
         topic: 'cats',
         gifUrl: '',
@@ -44,13 +48,13 @@ const RandomGifs = component<Model, Msg>({
             case Msg.MorePlease:
                 return [model, getRandomGif(model.topic)];
             case Msg.NewGif:
-                if (!msg.result.ok) {
-                    return { ...model, error: msg.result.err!.message };
+                if (msg.error) {
+                    return { ...model, error: msg.error.message };
                 }
 
-                return { ...model, gifUrl: msg.result.get(), error: '' };
+                return { ...model, gifUrl: msg.value, error: '' };
             case Msg.UpdateTopic:
-                return { ...model, topic: msg.result.get() };
+                return { ...model, topic: msg.value };
         }
 
         return model;

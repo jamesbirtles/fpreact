@@ -1,7 +1,7 @@
-import { Dispatcher } from './dispatch';
+import { Dispatcher } from './dispatcher';
 
-export type Cmd<Msg> = (dispatch: Dispatcher<Msg>) => void;
+export type Cmd<K> = (dispatch: Dispatcher<K>) => void;
 
-export function isCmdDispatch<Model, Msg>(v: any): v is [Model, Cmd<Msg>] {
+export function isCmdDispatch<Model, K>(v: any): v is [Model, Cmd<K>] {
     return Array.isArray(v) && v.length === 2 && typeof v[1] === 'function';
 }

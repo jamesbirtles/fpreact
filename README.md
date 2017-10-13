@@ -13,7 +13,7 @@ Find more in the `examples` folder.
 
 ### TypeScript
 ```tsx
-import { h, render, component } from 'fpreact';
+import { h, render, component, Message } from 'fpreact';
 
 enum Msg {
     UpdateName,
@@ -23,7 +23,9 @@ interface Model {
     name: string;
 }
 
-const Greet = component<Model, Msg>({
+type Messages = Message<Msg.UpdateName, string>;
+
+const Greet = component<Model, Messages>({
     model: {
         name: 'world',
     },
@@ -31,7 +33,7 @@ const Greet = component<Model, Msg>({
     update(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return { ...model, name: msg.result.get() };
+                return { ...model, name: msg.value };
         }
 
         return model;
@@ -72,7 +74,7 @@ const Greet = component({
     update(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return { ...model, name: msg.result.get() };
+                return { ...model, name: msg.value };
         }
 
         return model;
@@ -112,7 +114,7 @@ var Greet = fpreact.component({
     update: function(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return Object.assign({}, model, { name: msg.result.get() });
+                return Object.assign({}, model, { name: msg.value });
         }
 
         return model;

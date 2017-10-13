@@ -14,7 +14,7 @@ var Greet = fpreact.component({
     update: function(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return Object.assign({}, model, { name: msg.result.get() });
+                return Object.assign({}, model, { name: msg.value });
         }
 
         return model;

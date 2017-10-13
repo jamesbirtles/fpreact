@@ -1,6 +1,5 @@
 export { h, render } from 'preact';
 
 export { Cmd } from './cmd';
-export { component, ComponentDefinition } from './component';
-export { Dispatcher, DispatchResult } from './dispatch';
-export { r, Result } from './result';
+export { component, ComponentDefinition, Message } from './component';
+export { Dispatcher } from './dispatcher';

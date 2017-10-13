@@ -1,4 +1,4 @@
-import { h, render, component } from '..';
+import { h, render, component, Message } from '..';
 
 enum Msg {
     UpdateName,
@@ -8,7 +8,9 @@ interface Model {
     name: string;
 }
 
-const Greet = component<Model, Msg>({
+type Messages = Message<Msg.UpdateName, string>;
+
+const Greet = component<Model, Messages>({
     model: {
         name: 'world',
     },
@@ -16,7 +18,7 @@ const Greet = component<Model, Msg>({
     update(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return { ...model, name: msg.result.get() };
+                return { ...model, name: msg.value };
         }
 
         return model;

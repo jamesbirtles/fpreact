@@ -1,4 +1,4 @@
-import { h, render, component, Dispatcher } from '..';
+import { h, render, component, Dispatcher, Message } from '..';
 
 enum Msg {
     Increment,
@@ -9,6 +9,15 @@ enum Msg {
     TrackInterval,
     Reset,
 }
+
+type Messages =
+    | Message<Msg.Increment>
+    | Message<Msg.Decrement>
+    | Message<Msg.SetCounter, number>
+    | Message<Msg.StartInterval>
+    | Message<Msg.StopInterval>
+    | Message<Msg.TrackInterval, number>
+    | Message<Msg.Reset>;
 
 interface Model {
     counter: number;
@@ -26,7 +35,7 @@ function stopInterval(interval: number) {
     };
 }
 
-const Counter = component<Model, Msg, { value: number }>({
+const Counter = component<Model, Messages, { value: number }>({
     model: {
         counter: 0,
     },
@@ -42,7 +51,7 @@ const Counter = component<Model, Msg, { value: number }>({
             case Msg.Decrement:
                 return { ...model, counter: model.counter - 1 };
             case Msg.SetCounter:
-                return { ...model, counter: msg.result.get() };
+                return { ...model, counter: msg.value };
             case Msg.Reset:
                 return { ...model, counter: 0 };
             case Msg.StartInterval:
@@ -58,7 +67,7 @@ const Counter = component<Model, Msg, { value: number }>({
 
                 return [model, stopInterval(model.interval)];
             case Msg.TrackInterval:
-                return { ...model, interval: msg.result.get() };
+                return { ...model, interval: msg.value };
         }
 
         return model;

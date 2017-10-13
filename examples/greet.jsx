@@ -15,7 +15,7 @@ const Greet = component({
     update(msg, model) {
         switch (msg.kind) {
             case Msg.UpdateName:
-                return { ...model, name: msg.result.get() };
+                return { ...model, name: msg.value };
         }
 
         return model;
