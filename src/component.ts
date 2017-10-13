@@ -9,12 +9,29 @@ export interface Message<K, V = any, E extends Error = any> {
 }
 
 export interface ComponentDefinition<Model, Msg extends Message<any>, Props> {
-    model: Model;
-    update(model: Model, msg: Msg): Model | [Model, Cmd<Msg['kind']>];
+    update(model: Model | undefined, msg: Msg): Model | [Model, Cmd<Msg['kind']>];
     view(model: Model, dispatch: Dispatcher<Msg['kind']>): JSX.Element | null;
 
     init?(model: Model, dispatch: Dispatcher<Msg['kind']>): void;
     props?(props: Props, dispatch: Dispatcher<Msg['kind']>): void;
+}
+
+function runUpdate<Model, Msg extends Message<any>>(
+    comp: ComponentDefinition<Model, Msg, any>,
+    dispatch: Dispatcher<Msg['kind']>,
+    model: Model,
+    msg: Msg,
+): Model {
+    const res = comp.update(model, <any>msg);
+    let newModel: Model;
+    if (isCmdDispatch<Model, Msg['kind']>(res)) {
+        newModel = res[0];
+        res[1](dispatch);
+    } else {
+        newModel = res;
+    }
+
+    return newModel;
 }
 
 export function component<Model, Msg extends Message<any>, Props = {}>(
@@ -22,7 +39,21 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
 ): ComponentConstructor<Props, Model> {
     return class extends Component<Props, Model> {
         dispatchers = new Map<Msg['kind'], (value?: any, err?: Error) => void>();
-        state = comp.model;
+
+        constructor(...args: any[]) {
+            super(...args);
+
+            const state = runUpdate(comp, this.dispatch, undefined, {
+                kind: -1,
+                value: undefined,
+                error: undefined,
+            } as any)!;
+
+            // Clone the initial state onto the state object
+            // to avoid preact from mutating the initial state
+            // on later calls to setState
+            this.state = { ...(state as any) };
+        }
 
         componentWillMount() {
             if (comp.props != null) {
@@ -59,22 +90,23 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
                         }
                     }
 
-                    const res = comp.update(this.state, <any>msg);
-                    let model: Model;
-                    if (isCmdDispatch<Model, Msg['kind']>(res)) {
-                        model = res[0];
-                        res[1](this.dispatch);
-                    } else {
-                        model = res;
-                    }
-
-                    this.setState(model);
+                    this.replaceState(runUpdate(comp, this.dispatch, this.state, msg as any));
                 };
                 this.dispatchers.set(kind, dispatcher);
             }
 
             return dispatcher;
         };
+
+        // Copied from preact-compat
+        replaceState(state: Model, callback?: () => void) {
+            this.setState(state, callback);
+            for (let i in this.state) {
+                if (!(i in state)) {
+                    delete this.state[i];
+                }
+            }
+        }
 
         render() {
             return comp.view(this.state, this.dispatch);

@@ -32,18 +32,18 @@ function getRandomGif(topic: string) {
     };
 }
 
-const RandomGifs = component<Model, Messages>({
-    model: {
-        topic: 'cats',
-        gifUrl: '',
-        error: '',
-    },
+const initialModel: Model = {
+    topic: 'cats',
+    gifUrl: '',
+    error: '',
+};
 
+const RandomGifs = component<Model, Messages>({
     init(model, dispatch) {
         dispatch(Msg.MorePlease)();
     },
 
-    update(model, msg) {
+    update(model = initialModel, msg) {
         switch (msg.kind) {
             case Msg.MorePlease:
                 return [model, getRandomGif(model.topic)];

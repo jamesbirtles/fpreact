@@ -7,11 +7,11 @@ var Msg = {
 };
 
 var Greet = fpreact.component({
-    model: {
-        name: 'world',
-    },
-
     update: function(model, msg) {
+        if (model == null) {
+            return { name: 'world' };
+        }
+
         switch (msg.kind) {
             case Msg.UpdateName:
                 return Object.assign({}, model, { name: msg.value });

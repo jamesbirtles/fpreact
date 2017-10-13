@@ -26,11 +26,7 @@ interface Model {
 type Messages = Message<Msg.UpdateName, string>;
 
 const Greet = component<Model, Messages>({
-    model: {
-        name: 'world',
-    },
-
-    update(model, msg) {
+    update(model = { name: 'world' }, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return { ...model, name: msg.value };
@@ -67,11 +63,7 @@ const Msg = {
 };
 
 const Greet = component({
-    model: {
-        name: 'world',
-    },
-
-    update(model, msg) {
+    update(model = { name: 'world' }, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return { ...model, name: msg.value };
@@ -107,11 +99,11 @@ var Msg = {
 };
 
 var Greet = fpreact.component({
-    model: {
-        name: 'world',
-    },
-
     update: function(model, msg) {
+        if (model == null) {
+            return { name: 'world' };
+        }
+
         switch (msg.kind) {
             case Msg.UpdateName:
                 return Object.assign({}, model, { name: msg.value });

@@ -36,15 +36,11 @@ function stopInterval(interval: number) {
 }
 
 const Counter = component<Model, Messages, { value: number }>({
-    model: {
-        counter: 0,
-    },
-
     props(props, dispatch) {
         dispatch(Msg.SetCounter)(props.value);
     },
 
-    update(model, msg) {
+    update(model = { counter: 0 }, msg) {
         switch (msg.kind) {
             case Msg.Increment:
                 return { ...model, counter: model.counter + 1 };

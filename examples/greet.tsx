@@ -11,11 +11,7 @@ interface Model {
 type Messages = Message<Msg.UpdateName, string>;
 
 const Greet = component<Model, Messages>({
-    model: {
-        name: 'world',
-    },
-
-    update(model, msg) {
+    update(model = { name: 'world' }, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return { ...model, name: msg.value };
