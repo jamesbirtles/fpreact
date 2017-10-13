@@ -10,7 +10,7 @@ export interface Message<K, V = any, E extends Error = any> {
 
 export interface ComponentDefinition<Model, Msg extends Message<any>, Props> {
     model: Model;
-    update(msg: Msg, model: Model): Model | [Model, Cmd<Msg['kind']>];
+    update(model: Model, msg: Msg): Model | [Model, Cmd<Msg['kind']>];
     view(model: Model, dispatch: Dispatcher<Msg['kind']>): JSX.Element | null;
 
     init?(model: Model, dispatch: Dispatcher<Msg['kind']>): void;
@@ -59,7 +59,7 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
                         }
                     }
 
-                    const res = comp.update(<any>msg, this.state);
+                    const res = comp.update(this.state, <any>msg);
                     let model: Model;
                     if (isCmdDispatch<Model, Msg['kind']>(res)) {
                         model = res[0];

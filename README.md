@@ -30,7 +30,7 @@ const Greet = component<Model, Messages>({
         name: 'world',
     },
 
-    update(msg, model) {
+    update(model, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return { ...model, name: msg.value };
@@ -71,7 +71,7 @@ const Greet = component({
         name: 'world',
     },
 
-    update(msg, model) {
+    update(model, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return { ...model, name: msg.value };
@@ -111,7 +111,7 @@ var Greet = fpreact.component({
         name: 'world',
     },
 
-    update: function(msg, model) {
+    update: function(model, msg) {
         switch (msg.kind) {
             case Msg.UpdateName:
                 return Object.assign({}, model, { name: msg.value });

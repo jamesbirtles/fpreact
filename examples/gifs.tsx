@@ -43,7 +43,7 @@ const RandomGifs = component<Model, Messages>({
         dispatch(Msg.MorePlease)();
     },
 
-    update(msg, model) {
+    update(model, msg) {
         switch (msg.kind) {
             case Msg.MorePlease:
                 return [model, getRandomGif(model.topic)];

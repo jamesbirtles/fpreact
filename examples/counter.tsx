@@ -44,7 +44,7 @@ const Counter = component<Model, Messages, { value: number }>({
         dispatch(Msg.SetCounter)(props.value);
     },
 
-    update(msg, model) {
+    update(model, msg) {
         switch (msg.kind) {
             case Msg.Increment:
                 return { ...model, counter: model.counter + 1 };
