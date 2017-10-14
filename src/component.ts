@@ -16,22 +16,24 @@ export interface ComponentDefinition<Model, Msg extends Message<any>, Props> {
     props?(props: Props, dispatch: Dispatcher<Msg['kind']>): void;
 }
 
+const noop = () => null;
+
 function runUpdate<Model, Msg extends Message<any>>(
     comp: ComponentDefinition<Model, Msg, any>,
-    dispatch: Dispatcher<Msg['kind']>,
     model: Model,
     msg: Msg,
-): Model {
+): { model: Model; cmd: Cmd<Msg['kind']> } {
     const res = comp.update(model, <any>msg);
     let newModel: Model;
+    let cmd: Cmd<Msg['kind']> = noop;
     if (isCmdDispatch<Model, Msg['kind']>(res)) {
         newModel = res[0];
-        res[1](dispatch);
+        cmd = res[1];
     } else {
         newModel = res;
     }
 
-    return newModel;
+    return { model: newModel, cmd };
 }
 
 export function component<Model, Msg extends Message<any>, Props = {}>(
@@ -43,16 +45,17 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
         constructor(...args: any[]) {
             super(...args);
 
-            const state = runUpdate(comp, this.dispatch, undefined, {
+            const update = runUpdate(comp, undefined, {
                 kind: -1,
                 value: undefined,
                 error: undefined,
-            } as any)!;
+            } as any);
 
             // Clone the initial state onto the state object
             // to avoid preact from mutating the initial state
             // on later calls to setState
-            this.state = { ...(state as any) };
+            this.state = { ...(update.model as any) };
+            update.cmd(this.dispatch);
         }
 
         componentWillMount() {
@@ -90,7 +93,9 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
                         }
                     }
 
-                    this.replaceState(runUpdate(comp, this.dispatch, this.state, msg as any));
+                    const update = runUpdate(comp, this.state, msg as any);
+                    this.replaceState(update.model);
+                    update.cmd(this.dispatch);
                 };
                 this.dispatchers.set(kind, dispatcher);
             }
