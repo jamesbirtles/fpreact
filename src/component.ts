@@ -55,7 +55,7 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
             // to avoid preact from mutating the initial state
             // on later calls to setState
             this.state = { ...(update.model as any) };
-            update.cmd(this.dispatch);
+            update.cmd.call(this, this.dispatch);
         }
 
         componentWillMount() {
@@ -95,7 +95,7 @@ export function component<Model, Msg extends Message<any>, Props = {}>(
 
                     const update = runUpdate(comp, this.state, msg as any);
                     this.replaceState(update.model);
-                    update.cmd(this.dispatch);
+                    update.cmd.call(this, this.dispatch);
                 };
                 this.dispatchers.set(kind, dispatcher);
             }
